@@ -60,11 +60,11 @@ namespace HappreeTool.Surfers
             return driver;
         }
 
-        public static ChromeDriver AttachToExistingChromeInstance(string driverPath)
+        public static ChromeDriver AttachToExistingChromeInstance(string driverPath, string debuggerAddress)
         {
             // 创建 ChromeOptions 实例
             ChromeOptions options = new ChromeOptions();
-            options.DebuggerAddress = $"127.0.0.1:9222"; // 设置远程调试端口
+            options.DebuggerAddress = debuggerAddress; // 设置远程调试端口
 
             // 指定 chromedriver 的路径
             ChromeDriverService service = ChromeDriverService.CreateDefaultService(driverPath);

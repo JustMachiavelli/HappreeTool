@@ -5,14 +5,22 @@ namespace HappreeTool.Surfers
 {
     public static class WebDriverFactory
     {
-
-        public static ChromeDriver CreateChromeDriver(string binaryLocation, string driverPath, bool needProxy, string proxyServer)
+        /// <summary>
+        /// 创建selenium操控的chrome浏览器实例
+        /// </summary>
+        /// <param name="chromeLocation">chrome exe的路径</param>
+        /// <param name="driverPath">chrome driver的路径</param>
+        /// <param name="needProxy">是否需要代理</param>
+        /// <param name="proxyServer">http://127.0.0.1:7890</param>
+        /// <returns></returns>
+        public static ChromeDriver CreateChromeDriver(string chromeLocation, string driverPath,
+            bool needProxy = false, string? proxyServer = "http://127.0.0.1:7890")
         {
             // 创建 ChromeOptions 实例
             ChromeOptions options = new ChromeOptions();
 
             // 设置 Chrome 的安装路径
-            options.BinaryLocation = binaryLocation;
+            options.BinaryLocation = chromeLocation;
             // 设置页面加载策略
             options.PageLoadStrategy = PageLoadStrategy.Eager;
             // 修改 User-Agent

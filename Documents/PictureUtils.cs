@@ -1,5 +1,4 @@
-﻿using Org.BouncyCastle.Asn1.Pkcs;
-using SkiaSharp;
+﻿using SkiaSharp;
 
 namespace HappreeTool.Documents
 {
@@ -13,11 +12,11 @@ namespace HappreeTool.Documents
         /// <returns>图片是否正常</returns>
         public static bool CheckPicture(string imagePath)
         {
-            if (!System.IO.File.Exists(imagePath))
+            if (!File.Exists(imagePath))
                 return false;
 
             // 尝试加载图像
-            using var stream = System.IO.File.OpenRead(imagePath);
+            using var stream = File.OpenRead(imagePath);
             using var codec = SKCodec.Create(stream, out var result);
             if (codec == null || result != SKCodecResult.Success)
             {
@@ -27,49 +26,65 @@ namespace HappreeTool.Documents
             return true;
         }
 
-        public static void CropKeepRightWithAspectRatio(string pathFanart, string pathPoster, double ratio)
+        /// <summary>
+        /// 裁剪图片的右半边
+        /// </summary>
+        /// <param name="inputImagePath">原图片路径</param>
+        /// <param name="outputImagePath">保存新图片路径</param>
+        /// <param name="ratio">原图片高比上poster宽的比值</param>
+        public static void CropJpgRightWithAspectRatio(string inputImagePath, string outputImagePath, double ratio)
         {
-            using (var stream = File.OpenRead(pathFanart))
+            using var inputStream = File.OpenRead(inputImagePath);
+            using var original = SKBitmap.Decode(inputStream) ?? throw new Exception("无法解码输入图像.");
+
+            //设定裁剪区域
+            int srcWidth = original.Width;
+            int srcHeight = original.Height;
+            int cropHeight = srcHeight;
+            int cropWidth = (int)(cropHeight / ratio);  // Poster的预期宽度
+
+            //判定是否需要裁剪，还是直接用原图
+            if (srcWidth > cropWidth)
             {
-                using (var skBitmap = SKBitmap.Decode(stream))
-                {
-                    int srcWidth = skBitmap.Width;
-                    int srcHeight = skBitmap.Height;
-                    int wantWidth = (int)(srcHeight / ratio);  // Poster的预期宽度
-                    if (srcWidth > wantWidth)
-                    {
-                        // 正常的fanart，裁剪右边
-                        int destWidth = wantWidth;  // Poster的预期宽度
-                        int destX = srcWidth - destWidth;  // 左上角X坐标
+                // 长比高大的原图，裁剪右边
+                int destWidth = cropWidth;  // Poster的预期宽度
+                int startX = srcWidth - destWidth;  // 左上角X坐标
 
-                        using (var skCanvas = new SKCanvas(skBitmap))
-                        {
-                            // 裁剪右边
-                            skCanvas.ClipRect(new SKRect(destX, 0, srcWidth, srcHeight));
+                SKRectI cropRect = new SKRectI(startX, 0, startX + cropWidth, cropHeight);
+                // 创建新的裁剪图像
+                using var cropped = new SKBitmap(cropWidth, cropHeight);
+                using var canvas = new SKCanvas(cropped);
 
-                            // 保存图像为 JPEG 格式
-                            SaveAsJpeg(skBitmap, pathPoster);
-                        }
-                    }
-                    else
-                    {
-                        // fanart很“瘦”，Poster直接复制一份fanart
-                        File.Copy(pathFanart, pathPoster, true);
-                    }
-                }
+                canvas.Clear(SKColors.Transparent);
+                canvas.DrawBitmap(original, cropRect, new SKRect(0, 0, cropWidth, cropHeight));
+
+                // 保存裁剪后的图像
+                using var outputStream = File.OpenWrite(outputImagePath);
+                cropped.Encode(outputStream, SKEncodedImageFormat.Jpeg, 95);
+            }
+            else
+            {
+                // 原图很“瘦”，直接复制一份原图
+                File.Copy(inputImagePath, outputImagePath, true);
             }
         }
 
-        private static void SaveAsJpeg(SKBitmap skBitmap, string outputPath)
+        /// <summary>
+        /// 获取图片的宽度和高度
+        /// </summary>
+        /// <param name="imagePath">图片路径</param>
+        /// <returns>图片的宽度和高度</returns>
+        public static (int, int) GetImageDimensions(string imagePath)
         {
-            using (var image = SKImage.FromBitmap(skBitmap))
-            using (var data = image.Encode(SKEncodedImageFormat.Jpeg, 100))
-            using (var stream = File.OpenWrite(outputPath))
+            using var inputStream = File.OpenRead(imagePath);
+            using var codec = SKCodec.Create(inputStream);
+            if (codec == null)
             {
-                data.SaveTo(stream);
+                throw new Exception("无法解码输入图像.");
             }
-        }
 
+            return (codec.Info.Width, codec.Info.Height);
+        }
 
     }
 

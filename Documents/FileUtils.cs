@@ -302,5 +302,30 @@ namespace HappreeTool.Documents
             File.Move(tempPath, desiredPath);
         }
 
+        /// <summary>
+        /// 确保保存的文件名唯一
+        /// </summary>
+        /// <param name="savePath"></param>
+        /// <returns></returns>
+        public static string GetUniqueFilePath(string savePath)
+        {
+            // 如果文件不存在，直接返回原路径
+            if (!File.Exists(savePath))
+            {
+                return savePath;
+            }
+
+            // 获取文件夹路径、文件名和扩展名
+            string directory = Path.GetDirectoryName(savePath) ?? string.Empty;
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(savePath);
+            string extension = Path.GetExtension(savePath);
+
+            // 生成新的文件名
+            string newFileName = $"{fileNameWithoutExtension}_{Guid.NewGuid()}{extension}";
+
+            // 拼接成新的完整路径
+            return Path.Combine(directory, newFileName);
+        }
+
     }
 }

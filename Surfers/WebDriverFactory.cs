@@ -1,95 +1,137 @@
-﻿using OpenQA.Selenium;
+﻿using Microsoft.Extensions.DependencyInjection;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using System.Collections.Concurrent;
+using System.Net.Sockets;
 
 namespace HappreeTool.Surfers
 {
-    public static class WebDriverFactory
+    public class WebDriverFactory : IDisposable
     {
+        private readonly ConcurrentDictionary<string, ChromeDriver> _driverCache = new ConcurrentDictionary<string, ChromeDriver>();
+
         /// <summary>
-        /// 创建selenium操控的chrome浏览器实例
+        /// 创建或附加到一个 Chrome 浏览器实例，并通过 ChromeDriver 控制它。如果指定的远程调试端口已经被使用，则附加到该实例。
         /// </summary>
         /// <param name="chromeLocation">chrome exe的路径</param>
         /// <param name="driverPath">chrome driver的路径</param>
+        /// <param name="remoteDebuggingPort">远程调试端口，默认为 9222</param>
         /// <param name="needProxy">是否需要代理</param>
-        /// <param name="proxyServer">http://127.0.0.1:7890</param>
-        /// <returns></returns>
-        public static ChromeDriver CreateChromeDriver(string chromeLocation, string driverPath,
-            bool needProxy = false, string? proxyServer = "http://127.0.0.1:7890")
+        /// <param name="proxyServer">代理服务器地址，例如 http://127.0.0.1:7890</param>
+        /// <returns>一个 ChromeDriver 实例</returns>
+        public ChromeDriver GetOrCreateChromeDriver(string chromeLocation, string driverPath,
+            int remoteDebuggingPort = 9222, bool needProxy = false, string? proxyServer = "http://127.0.0.1:7890")
         {
-            // 创建 ChromeOptions 实例
-            ChromeOptions options = new ChromeOptions();
+            string debuggerAddress = $"127.0.0.1:{remoteDebuggingPort}";
 
-            // 设置 Chrome 的安装路径
-            options.BinaryLocation = chromeLocation;
-            // 设置页面加载策略
-            options.PageLoadStrategy = PageLoadStrategy.Eager;
-            // 修改 User-Agent
-            //options.AddArgument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-
-            // 避免 WebDriver 被检测的设置
-            options.AddExcludedArgument("enable-automation");
-
-            // 启用隐身模式
-            options.AddArgument("--incognito");
-
-            // 使用代理
-            if (needProxy)
+            // 先检查缓存中是否已有该端口对应的 ChromeDriver 实例
+            if (_driverCache.TryGetValue(debuggerAddress, out ChromeDriver? existingDriver))
             {
-                options.AddArgument($"--proxy-server={proxyServer}");
+                return existingDriver; // 如果已经存在指定端口的实例，返回它
             }
 
-            // 禁用扩展
-            options.AddArgument("--disable-extensions");
-            options.AddArgument("--disable-popup-blocking");
-            options.AddArgument("--disable-notifications");
-            options.AddArgument("--disable-gpu");
+            // 检查指定的端口是否被使用
+            if (IsPortInUse("127.0.0.1", remoteDebuggingPort))
+            {
+                // 如果指定端口被使用，附加到已有的 Chrome 实例
+                ChromeOptions options = new ChromeOptions();
+                options.DebuggerAddress = debuggerAddress;
 
-            // 关闭自动化提示
-            options.AddArgument("--disable-blink-features=AutomationControlled");
+                // 指定 chromedriver 的路径
+                ChromeDriverService service = ChromeDriverService.CreateDefaultService(driverPath);
+                var driver = new ChromeDriver(service, options);
 
-            // 禁止加载图像
-            options.AddUserProfilePreference("profile.managed_default_content_settings.images", 2);
+                // 将附加的实例添加到缓存中
+                _driverCache[debuggerAddress] = driver;
 
-            // 指定 chromedriver 的路径
-            ChromeDriverService service = ChromeDriverService.CreateDefaultService(driverPath);
+                return driver;
+            }
+            else
+            {
+                // 否则创建一个新的 Chrome 实例并开启调试模式
+                ChromeOptions options = new ChromeOptions();
+                options.BinaryLocation = chromeLocation;
 
-            // 创建 ChromeDriver 实例
-            ChromeDriver driver = new ChromeDriver(service, options);
+                options.PageLoadStrategy = PageLoadStrategy.Eager;
 
-            // 页面加载超时 20 秒
-            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(20);
+                // 设置远程调试端口
+                options.AddArgument($"--remote-debugging-port={remoteDebuggingPort}");
 
-            // 设置隐式等待时间
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+                // 避免 WebDriver 被检测的设置
+                options.AddExcludedArgument("enable-automation");
+                options.AddArgument("--incognito");
 
-            // 执行 JavaScript 代码来覆盖 navigator.webdriver 属性
-            driver.ExecuteScript("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})");
+                // 使用代理
+                if (needProxy)
+                {
+                    options.AddArgument($"--proxy-server={proxyServer}");
+                }
 
-            return driver;
+                // 禁用扩展
+                options.AddArgument("--disable-extensions");
+                options.AddArgument("--disable-popup-blocking");
+                options.AddArgument("--disable-notifications");
+                options.AddArgument("--disable-gpu");
+
+                // 关闭自动化提示
+                options.AddArgument("--disable-blink-features=AutomationControlled");
+
+                // 指定 chromedriver 的路径
+                ChromeDriverService service = ChromeDriverService.CreateDefaultService(driverPath);
+
+                var driver = new ChromeDriver(service, options);
+
+                // 页面加载超时 20 秒
+                driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(20);
+
+                // 设置隐式等待时间
+                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+
+                // 将新创建的实例添加到缓存中
+                _driverCache[debuggerAddress] = driver;
+
+                return driver;
+            }
         }
 
-        public static ChromeDriver AttachToExistingChromeInstance(string driverPath, string debuggerAddress)
+        /// <summary>
+        /// 检查指定的端口是否正在使用。
+        /// </summary>
+        /// <param name="host">主机地址</param>
+        /// <param name="port">端口号</param>
+        /// <returns>如果端口正在使用，则返回 true，否则返回 false</returns>
+        private bool IsPortInUse(string host, int port)
         {
-            // 创建 ChromeOptions 实例
-            ChromeOptions options = new ChromeOptions();
-            options.DebuggerAddress = debuggerAddress; // 设置远程调试端口
-
-            // 指定 chromedriver 的路径
-            ChromeDriverService service = ChromeDriverService.CreateDefaultService(driverPath);
-            //service.EnableVerboseLogging = true;
-            //service.SuppressInitialDiagnosticInformation = true;
-
-            // 创建 ChromeDriver 实例
-            ChromeDriver driver = new ChromeDriver(service, options);
-
-            // 页面加载超时 20 秒
-            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(20);
-
-            // 设置隐式等待时间
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
-
-            return driver;
+            try
+            {
+                using (var client = new TcpClient(host, port))
+                {
+                    return true;
+                }
+            }
+            catch (SocketException)
+            {
+                return false;
+            }
         }
 
+        public void Dispose()
+        {
+            foreach (var driver in _driverCache.Values)
+            {
+                driver.Quit();
+                driver.Dispose();
+            }
+            _driverCache.Clear();
+        }
+    }
+
+    public static class ServiceCollectionExtensions
+    {
+        public static IServiceCollection AddWebDriverFactory(this IServiceCollection services)
+        {
+            services.AddSingleton<WebDriverFactory>();
+            return services;
+        }
     }
 }

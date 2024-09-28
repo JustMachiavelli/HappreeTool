@@ -39,9 +39,12 @@ namespace HappreeTool.CommonUtils
                 }
             }
 
-            // 获取一个string.Concat(string[])的方法
-            MethodInfo methodInfo = typeof(string).GetMethod("Concat", expressions.Select(e => e.Type).ToArray())!;
-            var joinExpression = Expression.Call(methodInfo, expressions);
+            // 将所有表达式转为string[]数组
+            var stringArrayExpression = Expression.NewArrayInit(typeof(string), expressions);
+
+            // 使用string.Concat(string[])方法
+            MethodInfo methodInfo = typeof(string).GetMethod("Concat", new[] { typeof(string[]) })!;
+            var joinExpression = Expression.Call(methodInfo, stringArrayExpression);
             var lambda = Expression.Lambda<Func<T, string>>(joinExpression, parameter);
             return lambda.Compile();
         }

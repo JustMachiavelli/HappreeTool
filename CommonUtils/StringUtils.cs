@@ -2,7 +2,7 @@
 
 namespace HappreeTool.CommonUtils
 {
-    public class MyStringUtils
+    public class StringUtils
     {
         /// <summary>
         /// 去除字符串中某些文字

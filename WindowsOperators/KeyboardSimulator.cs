@@ -1,8 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace HappreeTool.Surfers
+namespace HappreeTool.WindowsOperators
 {
-    public static class InputSimulator
+    public static class KeyboardSimulator
     {
         // Windows API constants and structures
         [StructLayout(LayoutKind.Sequential)]
@@ -31,7 +31,7 @@ namespace HappreeTool.Surfers
             public uint mouseData;
             public uint dwFlags;
             public uint time;
-            public IntPtr dwExtraInfo;
+            public nint dwExtraInfo;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -41,7 +41,7 @@ namespace HappreeTool.Surfers
             public ushort wScan;
             public uint dwFlags;
             public uint time;
-            public IntPtr dwExtraInfo;
+            public nint dwExtraInfo;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -62,6 +62,8 @@ namespace HappreeTool.Surfers
 
         public const ushort VK_SHIFT = 0x10;
         public const ushort VK_DOWN = 0x28;
+        public const ushort VK_ESCAPE = 0x1B;
+        public const ushort VK_RIGHT = 0x27;
         public const ushort VK_RETURN = 0x0D;
 
         [DllImport("user32.dll", SetLastError = true)]
@@ -75,7 +77,7 @@ namespace HappreeTool.Surfers
             inputs[0].u.ki.wScan = 0;
             inputs[0].u.ki.dwFlags = keyUp ? KEYEVENTF_KEYUP : 0;
             inputs[0].u.ki.time = 0;
-            inputs[0].u.ki.dwExtraInfo = IntPtr.Zero;
+            inputs[0].u.ki.dwExtraInfo = nint.Zero;
 
             SendInput(1, inputs, Marshal.SizeOf(typeof(INPUT)));
         }
@@ -97,7 +99,7 @@ namespace HappreeTool.Surfers
                 inputs[0].u.ki.wScan = scanCode;
                 inputs[0].u.ki.dwFlags = KEYEVENTF_SCANCODE;
                 inputs[0].u.ki.time = 0;
-                inputs[0].u.ki.dwExtraInfo = IntPtr.Zero;
+                inputs[0].u.ki.dwExtraInfo = nint.Zero;
 
                 SendInput(1, inputs, Marshal.SizeOf(typeof(INPUT)));
 

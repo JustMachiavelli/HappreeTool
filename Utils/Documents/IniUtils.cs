@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 
-namespace HappreeTool.Documents
+namespace HappreeTool.Utils.Documents
 {
     /// <summary>
     /// 待定
@@ -37,7 +37,7 @@ namespace HappreeTool.Documents
         /// <param name="Value">值</param>
         public void IniWriteValue(string Section, string Key, string Value)
         {
-            WritePrivateProfileString(Section, Key, Value, this.inipath);
+            WritePrivateProfileString(Section, Key, Value, inipath);
         }
 
 
@@ -49,7 +49,7 @@ namespace HappreeTool.Documents
         public string IniReadValue(string Section, string Key)
         {
             StringBuilder temp = new StringBuilder(500);
-            int i = GetPrivateProfileString(Section, Key, "", temp, 500, this.inipath);
+            int i = GetPrivateProfileString(Section, Key, "", temp, 500, inipath);
             return temp.ToString();
         }
 

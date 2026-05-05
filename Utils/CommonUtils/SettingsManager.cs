@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace HappreeTool.CommonUtils
+namespace HappreeTool.Utils.CommonUtils
 {
     public static class SettingsManager<T> where T : new()
     {

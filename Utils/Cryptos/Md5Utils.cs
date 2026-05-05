@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace HappreeTool.Cryptos
+namespace HappreeTool.Utils.Cryptos
 {
     public class Md5Utils
     {

@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 
-namespace HappreeTool.Documents
+namespace HappreeTool.Utils.Documents
 {
     public static class FileUtils
     {

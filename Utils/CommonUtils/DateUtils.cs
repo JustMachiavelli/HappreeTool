@@ -1,6 +1,6 @@
-﻿namespace HappreeTool.CommonUtils
+﻿namespace HappreeTool.Utils.CommonUtils
 {
-    public class DateUtils
+    public static class DateUtils
     {
 
         /// <summary>
@@ -63,6 +63,36 @@
         }
 
         /// <summary>
+        /// 获取指定时间段内的所有星期日（左闭右闭）
+        /// </summary>
+        /// <param name="start">开始日期（包含）</param>
+        /// <param name="end">结束日期（包含）</param>
+        /// <returns>区间内的所有星期日</returns>
+        public static IEnumerable<DateOnly> GetSundaysBetween(DateOnly start, DateOnly? end)
+        {
+            if (end == null)
+            {
+                end = DateOnly.FromDateTime(DateTime.Today);
+            }
+
+            if (end < start)
+            {
+                throw new ArgumentException("end 不能早于 start");
+            }
+
+            // 先找到 >= start 的第一个星期日
+            int daysToSunday =
+                ((int)DayOfWeek.Sunday - (int)start.DayOfWeek + 7) % 7;
+
+            var firstSunday = start.AddDays(daysToSunday);
+
+            for (var date = firstSunday; date <= end; date = date.AddDays(7))
+            {
+                yield return date;
+            }
+        }
+
+        /// <summary>
         /// 获取两个日期之间的日期范围
         /// </summary>
         /// <param name="startDate"></param>
@@ -74,7 +104,7 @@
             if (endDate < startDate)
                 throw new ArgumentException("endDate must be greater than or equal to startDate");
 
-            int days = (endDate.DayNumber - startDate.DayNumber) + 1;
+            int days = endDate.DayNumber - startDate.DayNumber + 1;
             var result = new DateOnly[days];
 
             for (int i = 0; i < days; i++)

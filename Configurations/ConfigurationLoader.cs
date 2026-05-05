@@ -19,5 +19,6 @@ namespace HappreeTool.Configurations
                 .AddJsonFile($"appsettings/appsettings.{moduleName}.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: false, reloadOnChange: true)
                 .Build();
         }
+
     }
 }

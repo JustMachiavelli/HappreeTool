@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace HappreeTool.CommonUtils
+namespace HappreeTool.Utils.CommonUtils
 {
     public static class PredicateBuilder
     {

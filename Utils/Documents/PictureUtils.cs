@@ -1,6 +1,6 @@
 ﻿using SkiaSharp;
 
-namespace HappreeTool.Documents
+namespace HappreeTool.Utils.Documents
 {
     public static class PictureUtils
     {
@@ -27,21 +27,23 @@ namespace HappreeTool.Documents
         }
 
         /// <summary>
-        /// 裁剪图片的右半边
+        /// 裁剪图片的右半边，并返回 JPEG 字节数组。
         /// </summary>
         /// <param name="inputImagePath">原图片路径</param>
-        /// <param name="outputImagePath">保存新图片路径</param>
-        /// <param name="ratio">原图片高比上poster宽的比值</param>
-        public static void CropJpgRightWithAspectRatio(string inputImagePath, string outputImagePath, double ratio)
+        /// <param name="ratio">原图片高比上 poster 宽的比值</param>
+        /// <returns>裁剪后的 JPG 字节流</returns>
+        public static async Task<byte[]> CropJpgRightWithAspectRatioAsync(string inputImagePath, double ratio)
         {
-            using var inputStream = File.OpenRead(inputImagePath);
-            using var original = SKBitmap.Decode(inputStream) ?? throw new Exception("无法解码输入图像.");
+            await using var inputStream = File.OpenRead(inputImagePath);
+            using var original = SKBitmap.Decode(inputStream) ?? throw new Exception("无法解码输入图像");
 
             //设定裁剪区域
             int srcWidth = original.Width;
             int srcHeight = original.Height;
             int cropHeight = srcHeight;
             int cropWidth = (int)(cropHeight / ratio);  // Poster的预期宽度
+
+            using var outputStream = new MemoryStream();
 
             //判定是否需要裁剪，还是直接用原图
             if (srcWidth > cropWidth)
@@ -58,15 +60,19 @@ namespace HappreeTool.Documents
                 canvas.Clear(SKColors.Transparent);
                 canvas.DrawBitmap(original, cropRect, new SKRect(0, 0, cropWidth, cropHeight));
 
-                // 保存裁剪后的图像
-                using var outputStream = File.OpenWrite(outputImagePath);
-                cropped.Encode(outputStream, SKEncodedImageFormat.Jpeg, 95);
+                using var image = SKImage.FromBitmap(cropped);
+                using var data = image.Encode(SKEncodedImageFormat.Jpeg, 95);
+
+                data.SaveTo(outputStream);
             }
             else
             {
                 // 原图很“瘦”，直接复制一份原图
-                File.Copy(inputImagePath, outputImagePath, true);
+                inputStream.Position = 0;
+                await inputStream.CopyToAsync(outputStream);
             }
+
+            return outputStream.ToArray();
         }
 
         /// <summary>

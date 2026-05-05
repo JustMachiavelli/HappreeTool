@@ -1,7 +1,7 @@
 ﻿using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 
-namespace HappreeTool.Documents
+namespace HappreeTool.Utils.Documents
 {
     public static class ExcelUtils
     {

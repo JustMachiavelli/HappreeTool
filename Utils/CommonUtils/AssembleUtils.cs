@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
 
-namespace HappreeTool.CommonUtils
+namespace HappreeTool.Utils.CommonUtils
 {
     /// <summary>
     /// 获取类的属性，得到“按IEnumerable<string> parts拼接为字符串”的方法

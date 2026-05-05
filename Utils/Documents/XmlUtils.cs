@@ -1,7 +1,7 @@
 ﻿using System.Xml.Linq;
 using System.Xml.XPath;
 
-namespace HappreeTool.Documents
+namespace HappreeTool.Utils.Documents
 {
     public static class XmlUtils
     {

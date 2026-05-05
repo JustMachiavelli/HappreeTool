@@ -1,4 +1,4 @@
-﻿namespace HappreeTool.Documents
+﻿namespace HappreeTool.Utils.Documents
 {
     public class VideoUtils
     {

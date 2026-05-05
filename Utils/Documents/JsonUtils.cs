@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 
-namespace HappreeTool.Documents
+namespace HappreeTool.Utils.Documents
 {
     public class JsonUtils
     {

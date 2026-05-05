@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace HappreeTool.CommonUtils
+namespace HappreeTool.Utils.CommonUtils
 {
     public class StringUtils
     {

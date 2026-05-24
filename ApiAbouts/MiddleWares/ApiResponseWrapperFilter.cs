@@ -2,85 +2,73 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace HappreeTool.ApiAbouts.MiddleWares
+namespace HappreeTool.ApiAbouts.MiddleWares;
+
+/// <summary>
+/// API 响应包装过滤器
+/// </summary>
+public class ApiResponseWrapperFilter : IAsyncResultFilter
 {
-    /// <summary>
-    /// 返回包装器
-    /// </summary>
-    public class ApiResponseWrapperFilter : IAsyncResultFilter
+    public async Task OnResultExecutionAsync(
+        ResultExecutingContext context,
+        ResultExecutionDelegate next)
     {
-        /// <summary>
-        /// 促使所有返回不是ApiResponseMessage类型的，用ApiResponseMessage包装
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="next"></param>
-        /// <returns></returns>
-        public async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next)
+        // 跳过特殊响应
+        if (ShouldSkip(context.Result))
         {
-            switch (context.Result)
+            await next();
+            return;
+        }
+
+        // 仅处理 ObjectResult
+        if (context.Result is ObjectResult objectResult)
+        {
+            // ProblemDetails 不处理
+            if (objectResult.Value is ProblemDetails)
             {
-                case ObjectResult objectResult:
-                    {
-                        var value = objectResult.Value;
-
-                        // null → Success(null)
-                        if (value is null)
-                        {
-                            objectResult.Value = ApiResponseMessage<object?>.Success();
-                            break;
-                        }
-
-                        // 已经是 ApiResponseMessage<T>，直接放行
-                        if (IsApiResponse(value))
-                        {
-                            break;
-                        }
-
-                        // 包装
-                        objectResult.Value = ApiResponseMessage<object?>.Success(value);
-                        break;
-                    }
-
-                case EmptyResult:
-                    {
-                        context.Result = new ObjectResult(ApiResponseMessage<object?>.Success());
-                        break;
-                    }
-
-                case ContentResult contentResult:
-                    {
-                        context.Result = new ObjectResult(
-                            ApiResponseMessage<object?>.Success(contentResult.Content)
-                        );
-                        break;
-                    }
-
-                default:
-                    {
-                        // 其他类型（很少见）
-                        context.Result = new ObjectResult(
-                            ApiResponseMessage<object?>.Success(context.Result)
-                        );
-                        break;
-                    }
+                await next();
+                return;
             }
 
-            await next();
+            // 已经是 ApiResponseMessage
+            if (objectResult.Value is ApiResponseMessage)
+            {
+                await next();
+                return;
+            }
+
+            // 自动包装
+            objectResult.Value =
+                ApiResponseMessage<object?>
+                    .Success(objectResult.Value);
         }
 
-        /// <summary>
-        /// 判断是否是 ApiResponseMessage 或 ApiResponseMessage<T>
-        /// </summary>
-        private static bool IsApiResponse(object value)
-        {
-            var type = value.GetType();
-
-            if (!type.IsGenericType)
-                return type == typeof(ApiResponseMessage<object?>);
-
-            return type.GetGenericTypeDefinition() == typeof(ApiResponseMessage<>);
-        }
-
+        await next();
     }
 
+    /// <summary>
+    /// 是否跳过包装
+    /// </summary>
+    private static bool ShouldSkip(IActionResult result)
+    {
+        return result switch
+        {
+            // 文件
+            FileResult => true,
+
+            // 重定向
+            RedirectResult => true,
+            RedirectToActionResult => true,
+            RedirectToRouteResult => true,
+            RedirectToPageResult => true,
+
+            // 登录鉴权
+            ChallengeResult => true,
+            ForbidResult => true,
+            SignInResult => true,
+            SignOutResult => true,
+
+            _ => false
+        };
+    }
 }

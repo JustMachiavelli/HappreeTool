@@ -22,7 +22,6 @@ namespace HappreeTool.Surfers
 
             HttpClient client = _httpClientFactory.CreateClient(HttpClientExtensions.MyApiClient);
             HttpResponseMessage response = await client.PostAsync(url, httpContent);
-
             return response;
         }
 
@@ -50,29 +49,6 @@ namespace HappreeTool.Surfers
             {
                 logger.LogWarning("从{url} 获取数据失败，状态码: {StatusCode}", url, response.StatusCode);
                 return default;
-            }
-        }
-
-        public async Task<byte[]> GetBytesAsync(string url)
-        {
-            logger.LogInformation("准备从信任服务【{url}】下载图片", url);
-
-            HttpClient client = _httpClientFactory.CreateClient(HttpClientExtensions.MyApiClient);
-            HttpResponseMessage response = await client.GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadAsByteArrayAsync();
-            }
-            else if (response.StatusCode is HttpStatusCode.NotFound)
-            {
-                logger.LogWarning("MovieDb不存在资源: {url}", url);
-                throw new MovieDbNotFoundException(url);
-            }
-            else
-            {
-                logger.LogWarning("从{url} 获取数据失败，状态码: {StatusCode}，内容: ", url, await response.Content.ReadAsStringAsync());
-                throw new MovieDbServerException(url);
             }
         }
     }

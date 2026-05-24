@@ -4,7 +4,9 @@ namespace HappreeTool.Configurations
 {
     public static class ConfigurationLoader
     {
-        public static IConfiguration LoadModuleConfiguration(string basePath, string moduleName, IConfiguration? baseConfiguration = null)
+        public static IConfiguration LoadModuleConfiguration(string basePath,
+                                                             string moduleName,
+                                                             IConfiguration? baseConfiguration = null)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(basePath);
@@ -19,6 +21,5 @@ namespace HappreeTool.Configurations
                 .AddJsonFile($"appsettings/appsettings.{moduleName}.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: false, reloadOnChange: true)
                 .Build();
         }
-
     }
 }

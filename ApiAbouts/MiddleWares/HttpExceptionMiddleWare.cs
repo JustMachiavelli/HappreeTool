@@ -4,54 +4,77 @@ using HappreeTool.ApiAbouts.Messages;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
-namespace HappreeTool.ApiAbouts.MiddleWares
+namespace HappreeTool.ApiAbouts.MiddleWares;
+
+/// <summary>
+/// 全局异常处理中间件
+/// </summary>
+public class HttpExceptionMiddleWare(
+    ILogger<HttpExceptionMiddleWare> logger)
+    : IMiddleware
 {
-    public class HttpExceptionMiddleWare(ILogger<HttpExceptionMiddleWare> logger) : IMiddleware
+    private readonly ILogger<HttpExceptionMiddleWare> _logger = logger;
+
+    public async Task InvokeAsync(
+        HttpContext context,
+        RequestDelegate next)
     {
-        private readonly ILogger<HttpExceptionMiddleWare> _logger = logger;
-
-        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+        try
         {
-            try
-            {
-                await next(context);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-
-                var (code, message, statusCode) = MapException(ex);
-
-                var response = ApiResponseMessage<object?>.Fail(code, message);
-                context.Response.ContentType = "application/json";
-                context.Response.StatusCode = statusCode;
-
-                await context.Response.WriteAsJsonAsync(response);
-            }
+            await next(context);
         }
-
-        private static (ApiCode code, string message, int status) MapException(Exception ex)
+        catch (Exception ex)
         {
-            return ex switch
-            {
-                BadRequestExcepiton => (
-                    ApiCode.资源已存在,
-                    ex.Message,
-                    StatusCodes.Status400BadRequest
-                ),
+            _logger.LogError(ex, ex.Message);
 
-                ValidationException ve => (
-                    ApiCode.请求参数非法,
-                    string.Join(";", ve.Errors.Select(e => e.ErrorMessage)),
-                    StatusCodes.Status400BadRequest
-                ),
+            var (code, message, statusCode) =
+                MapException(ex);
 
-                _ => (
-                    ApiCode.服务器内部错误,
-                    "服务器内部错误",
-                    StatusCodes.Status500InternalServerError
-                )
-            };
+            context.Response.Clear();
+
+            context.Response.StatusCode = statusCode;
+
+            context.Response.ContentType =
+                "application/json; charset=utf-8";
+
+            ApiResponseMessage response =
+                ApiResponseMessage.Fail(code, message);
+
+            await context.Response.WriteAsJsonAsync(response);
         }
+    }
+
+    /// <summary>
+    /// 异常映射
+    /// </summary>
+    private static (
+        ApiCode code,
+        string message,
+        int statusCode)
+        MapException(Exception ex)
+    {
+        return ex switch
+        {
+            // FluentValidation 参数校验失败
+            ValidationException validationException => (
+                ApiCode.请求参数非法,
+                string.Join("; ", validationException.Errors.Select(e => e.ErrorMessage)),
+                StatusCodes.Status400BadRequest
+            ),
+
+            // 业务异常
+            BadRequestException => (
+                ApiCode.资源已存在,
+                ex.Message,
+                StatusCodes.Status400BadRequest
+            ),
+
+            // 未知异常
+            _ => (
+                ApiCode.服务器内部错误,
+                "服务器内部错误",
+                StatusCodes.Status500InternalServerError
+            )
+        };
     }
 }

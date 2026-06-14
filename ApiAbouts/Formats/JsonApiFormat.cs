@@ -11,6 +11,11 @@ namespace HappreeTool.ApiAbouts.Formats
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping // 使输出更人性化
         };
 
+        public static readonly JsonSerializerOptions CASE_INSENSITIVE_OPTIONS = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         public static StringContent FormatJsonContent<T>(T content)
         {
             string jsonContent = JsonSerializer.Serialize(content, JSON_SERIALIZER_OPTIONS);

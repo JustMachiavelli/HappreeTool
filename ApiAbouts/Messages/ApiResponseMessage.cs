@@ -8,14 +8,16 @@
         /// <summary>
         /// 状态码
         /// </summary>
-        public ApiCode Code { get; init; } = ApiCode.成功;
+        public ApiCode Code { get; set; } = ApiCode.成功;
 
         /// <summary>
         /// 提示信息
         /// </summary>
-        public string Message { get; init; } = "成功";
+        public string Message { get; set; } = "成功";
 
-        protected ApiResponseMessage() { }
+        public ApiResponseMessage()
+        {
+        }
 
         protected ApiResponseMessage(ApiCode code, string message)
         {
@@ -59,9 +61,11 @@
         /// <summary>
         /// 返回数据
         /// </summary>
-        public T? Data { get; init; }
+        public T? Data { get; set; }
 
-        private ApiResponseMessage() { }
+        public ApiResponseMessage()
+        {
+        }
 
         private ApiResponseMessage(ApiCode code,
                                    string message,
@@ -79,6 +83,5 @@
         }
 
         #endregion
-
     }
 }

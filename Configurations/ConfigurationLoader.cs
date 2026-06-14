@@ -15,10 +15,11 @@ namespace HappreeTool.Configurations
             {
                 builder.AddConfiguration(baseConfiguration);
             }
-
+            
+            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             return builder
                 .AddJsonFile($"appsettings/appsettings.{moduleName}.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings/appsettings.{moduleName}.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings/appsettings.{moduleName}.{environment}.json", optional: false, reloadOnChange: true)
                 .Build();
         }
     }

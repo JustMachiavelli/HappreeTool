@@ -2,8 +2,7 @@
 {
     public class VideoUtils
     {
-
-        public static readonly HashSet<string> VIDEO_EXTENSIONS = new HashSet<string>
+        public static readonly HashSet<string> VIDEO_EXTENSIONS = new(StringComparer.OrdinalIgnoreCase)
         {
             ".mp4",
             ".mov",
@@ -16,20 +15,9 @@
             ".rmvb",
             ".ts",
             ".iso",
-            // 添加其他视频后缀名...
         };
 
-
-        public static bool IsVideoFile(string filePath)
-        {
-            if (Path.GetFileName(filePath).StartsWith("."))
-            {
-                return false;
-            }
-            return VIDEO_EXTENSIONS.Contains(Path.GetExtension(filePath), StringComparer.OrdinalIgnoreCase);
-        }
-
-        public static readonly HashSet<string> SUBTITLE_EXTENSIONS = new HashSet<string>
+        public static readonly HashSet<string> SUBTITLE_EXTENSIONS = new(StringComparer.OrdinalIgnoreCase)
         {
             ".srt",
             ".sub",
@@ -37,18 +25,41 @@
             ".ssa",
             ".vtt",
             ".smi",
-            // 添加其他字幕文件后缀名...
         };
 
-        public static bool IsSubtitleFile(string filePath)
+        /// <summary>
+        /// 通用文件后缀判定
+        /// </summary>
+        public static bool IsMatchExtension(string filePath, IEnumerable<string> extensions)
         {
-            if (Path.GetFileName(filePath).StartsWith("."))
+            if (string.IsNullOrWhiteSpace(filePath))
             {
                 return false;
             }
-            return SUBTITLE_EXTENSIONS.Contains(Path.GetExtension(filePath), StringComparer.OrdinalIgnoreCase);
+
+            string fileName = Path.GetFileName(filePath);
+
+            // 排除隐藏文件
+            if (fileName.StartsWith("."))
+            {
+                return false;
+            }
+
+            string extension = Path.GetExtension(filePath);
+
+            return extensions.Contains(
+                extension,
+                StringComparer.OrdinalIgnoreCase);
         }
 
+        public static bool IsVideoFile(string filePath)
+        {
+            return IsMatchExtension(filePath, VIDEO_EXTENSIONS);
+        }
 
+        public static bool IsSubtitleFile(string filePath)
+        {
+            return IsMatchExtension(filePath, SUBTITLE_EXTENSIONS);
+        }
     }
 }

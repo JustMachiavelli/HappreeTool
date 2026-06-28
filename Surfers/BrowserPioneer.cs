@@ -4,19 +4,20 @@ using Microsoft.Extensions.Options;
 
 namespace HappreeTool.Surfers
 {
-    public class BrowserPioneer(IOptions<BrowserPioneerSettigns> settigns, HttpWrapper httpWrapper)
+    public class BrowserPioneer(IOptions<BrowserPioneerSettigns> settigns,
+                                HttpWrapper httpWrapper)
     {
-
         private readonly string remoteDownloadServer = settigns.Value.DownloadImage;
         private readonly string webpageContentServer = settigns.Value.WebpageContent;
 
-        public async Task<byte[]> DownloadImageFromWebsitePageAsync(string imageXPath, string? pageUrl, byte downCount = 8, string? obstacleXPath = null)
+        public async Task<byte[]> DownloadImageFromWebsitePageAsync(string imageXPath,
+                                                                    string? pageUrl,
+                                                                    byte downCount = 8)
         {
             RemoteImageDownloadRequest command = new RemoteImageDownloadRequest
             {
                 PageUrl = pageUrl,
                 ImageXPath = imageXPath,
-                ObstacleXPath = obstacleXPath,
                 DownCount = downCount,
             };
 
@@ -32,9 +33,6 @@ namespace HappreeTool.Surfers
             public string? PageUrl { get; set; }
 
             public byte DownCount { get; set; }
-
-            public string? ObstacleXPath { get; set; }
-
         }
 
         public async Task<string> GetWebpageContentAsync(string pageUrl)
@@ -53,6 +51,5 @@ namespace HappreeTool.Surfers
         {
             public string PageUrl { get; set; } = default!;
         }
-
     }
 }

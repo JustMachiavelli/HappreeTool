@@ -29,12 +29,12 @@ namespace HappreeTool.Utils.Documents
         /// <summary>
         /// 裁剪图片的右半边，并返回 JPEG 字节数组。
         /// </summary>
-        /// <param name="inputImagePath">原图片路径</param>
+        /// <param name="imageBytes">原图片</param>
         /// <param name="ratio">原图片高比上 poster 宽的比值</param>
         /// <returns>裁剪后的 JPG 字节流</returns>
-        public static async Task<byte[]> CropJpgRightWithAspectRatioAsync(string inputImagePath, double ratio)
+        public static async Task<byte[]> CropJpgRightWithAspectRatioAsync(byte[] imageBytes, double ratio)
         {
-            await using var inputStream = File.OpenRead(inputImagePath);
+            await using var inputStream = new MemoryStream(imageBytes);
             using var original = SKBitmap.Decode(inputStream) ?? throw new Exception("无法解码输入图像");
 
             //设定裁剪区域

@@ -56,7 +56,7 @@ public class HttpExceptionMiddleWare(ILogger<HttpExceptionMiddleWare> _logger) :
             // 未知异常
             _ => (
                 ApiCode.服务器内部错误,
-                "服务器内部错误",
+                ex.Message,
                 StatusCodes.Status500InternalServerError
             )
         };

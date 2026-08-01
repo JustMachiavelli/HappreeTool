@@ -67,9 +67,8 @@ namespace HappreeTool.Utils.Documents
             }
             else
             {
-                // 原图很“瘦”，直接复制一份原图
-                inputStream.Position = 0;
-                await inputStream.CopyToAsync(outputStream);
+                // 原图很“瘦”，直接用原图
+                return imageBytes;
             }
 
             return outputStream.ToArray();

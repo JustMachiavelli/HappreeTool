@@ -43,7 +43,9 @@ namespace HappreeTool.Utils.Documents
         /// <param name="searchPattern">要匹配的文件格式</param>
         /// <param name="files">已获取的子文件们完整路径</param>
         /// <returns></returns>
-        public static List<string> GetAllSubFilesPaths(string directoryPath, string searchPattern, List<string>? files = null)
+        public static List<string> GetAllSubFilesPaths(string directoryPath,
+                                                       string searchPattern,
+                                                       List<string>? files = null)
         {
             if (files == null)
             {
@@ -102,6 +104,7 @@ namespace HappreeTool.Utils.Documents
             {
                 File.Delete(path);
             }
+
             return path;
         }
 
@@ -209,7 +212,8 @@ namespace HappreeTool.Utils.Documents
                 }
 
                 // 大小写不敏感，相同 => 是自己，但大小写不同 => 重命名 true => 用一个临时文件move两次（直接重命名大小写，可能失败）
-                string tempFilePath = Path.Combine(Path.GetDirectoryName(oldFilePath) ?? oldFilePath, Path.GetRandomFileName());
+                string tempFilePath = Path.Combine(Path.GetDirectoryName(oldFilePath) ?? oldFilePath,
+                    Path.GetRandomFileName());
                 File.Move(oldFilePath, tempFilePath);
                 File.Move(tempFilePath, newFilePath);
                 return;
@@ -290,7 +294,8 @@ namespace HappreeTool.Utils.Documents
             }
 
             var file = Directory.GetFiles(directory)
-                                .FirstOrDefault(f => string.Equals(Path.GetFileName(f).ToLower(), fileNameLower, StringComparison.Ordinal));
+                .FirstOrDefault(f =>
+                    string.Equals(Path.GetFileName(f).ToLower(), fileNameLower, StringComparison.Ordinal));
 
             if (file == null)
             {
@@ -327,5 +332,27 @@ namespace HappreeTool.Utils.Documents
             return Path.Combine(directory, newFileName);
         }
 
+        /// <summary>
+        /// 获取指定目录下指定类型文件，按照指定排序返回第一个
+        /// </summary>
+        /// <param name="directoryPath">目录</param>
+        /// <param name="searchPattern">文件匹配，例如 "*.flv"</param>
+        /// <param name="sortFunc">排序方式，例如 fi => fi.LastWriteTime</param>
+        /// <returns>符合条件的第一个文件路径，找不到返回null</returns>
+        public static string? GetFirstFile(string directoryPath,
+                                           string searchPattern,
+                                           Func<FileInfo, object> sortFunc)
+        {
+            if (!Directory.Exists(directoryPath))
+            {
+                return null;
+            }
+
+            return new DirectoryInfo(directoryPath)
+                .GetFiles(searchPattern, SearchOption.TopDirectoryOnly)
+                .OrderByDescending(sortFunc)
+                .FirstOrDefault()
+                ?.FullName;
+        }
     }
 }

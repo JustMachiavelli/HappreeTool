@@ -114,6 +114,41 @@
 
             return result;
         }
+        
+        /// <summary>
+        /// 检查传入N个日期DateOnly参数两两之间的日期差距，是否在指定误差之内。
+        /// </summary>
+        /// <param name="maxDays"></param>
+        /// <param name="dates"></param>
+        /// <returns></returns>
+        /// <remarks>允许传入日期是null，null视为和任意日期没有差距。</remarks>
+        /// <example>例如传入30天和3个DateOnly参数，如果任意两个日期之间的差距大于30，该方法返回false。</example>
+        public static bool IsWithinDays(int maxDays, params DateOnly?[] dates)
+        {
+            for (int i = 0; i < dates.Length - 1; i++)
+            {
+                if (dates[i] is null)
+                {
+                    continue;
+                }
+
+                for (int j = i + 1; j < dates.Length; j++)
+                {
+                    if (dates[j] is null)
+                    {
+                        continue;
+                    }
+
+                    int days = Math.Abs(dates[i]!.Value.DayNumber - dates[j]!.Value.DayNumber);
+                    if (days > maxDays)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
 
     }
 }

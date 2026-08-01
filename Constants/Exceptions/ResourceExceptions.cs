@@ -17,7 +17,7 @@ public class ResourceNotExistException(string resourceType, string property)
 /// </summary>
 /// <param name="resourceType">资源名称</param>
 /// <param name="id">唯一标识</param>
-public class RepeatAddResourceException(string resourceType, string id)
+public class ResourceAlreadyExistException(string resourceType, string id)
     : Exception($"{nameof(id)}为【{resourceType}】资源【{id}】已存在")
 {
 }

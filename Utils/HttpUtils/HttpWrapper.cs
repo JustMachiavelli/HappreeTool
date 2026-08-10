@@ -12,7 +12,7 @@ namespace HappreeTool.Utils.HttpUtils
 
         public HttpWrapper(ILogger<HttpWrapper> logger, IHttpClientFactory factory)
         {
-            _client = factory.CreateClient("default");
+            _client = factory.CreateClient(HttpClientExtensions.MyApiClient);
             _logger = logger;
         }
 

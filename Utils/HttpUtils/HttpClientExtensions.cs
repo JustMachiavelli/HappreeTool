@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace HappreeTool.Surfers
+namespace HappreeTool.Utils.HttpUtils
 {
     public static class HttpClientExtensions
     {
@@ -8,14 +8,14 @@ namespace HappreeTool.Surfers
 
         public static IServiceCollection AddMyApiHttpClient(this IServiceCollection services)
         {
-            services.AddHttpClient<HttpClientWrapper>(MyApiClient)
+            services.AddHttpClient<HttpWrapper>(MyApiClient)
                 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
                 {
                     // 忽略 SSL 证书错误
                     ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
                 });
 
-            services.AddScoped<HttpClientWrapper>();
+            services.AddScoped<HttpWrapper>();
             return services;
         }
     }

@@ -8,6 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AlibabaCloud.OSS.V2" Version="0.2.0" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
 		<PackageReference Include="MediatR" Version="13.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

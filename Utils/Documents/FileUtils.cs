@@ -339,9 +339,9 @@ namespace HappreeTool.Utils.Documents
         /// <param name="searchPattern">文件匹配，例如 "*.flv"</param>
         /// <param name="sortFunc">排序方式，例如 fi => fi.LastWriteTime</param>
         /// <returns>符合条件的第一个文件路径，找不到返回null</returns>
-        public static string? GetFirstFile(string directoryPath,
-                                           string searchPattern,
-                                           Func<FileInfo, object> sortFunc)
+        public static FileInfo? GetFirstFile(string directoryPath,
+                                                  string searchPattern,
+                                                  Func<FileInfo, object> sortFunc)
         {
             if (!Directory.Exists(directoryPath))
             {
@@ -351,8 +351,7 @@ namespace HappreeTool.Utils.Documents
             return new DirectoryInfo(directoryPath)
                 .GetFiles(searchPattern, SearchOption.TopDirectoryOnly)
                 .OrderByDescending(sortFunc)
-                .FirstOrDefault()
-                ?.FullName;
+                .FirstOrDefault();
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using FluentValidation;
 using HappreeTool.ApiAbouts.Exceptions;
 using HappreeTool.ApiAbouts.Messages;
+using HappreeTool.Constants.Exceptions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace HappreeTool.ApiAbouts.MiddleWares;
@@ -9,13 +11,21 @@ namespace HappreeTool.ApiAbouts.MiddleWares;
 /// <summary>
 /// 全局异常处理中间件
 /// </summary>
-public class HttpExceptionMiddleWare(ILogger<HttpExceptionMiddleWare> _logger) : IMiddleware
+public class HttpExceptionMiddleWare(ILogger<HttpExceptionMiddleWare> _logger,
+                                     IHostApplicationLifetime _applicationLifetime) : IMiddleware
 {
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         try
         {
             await next(context);
+        }
+        catch (FatalException ex)
+        {
+            // 致命异常：停止整个应用程序
+            _logger.LogCritical(ex, "发生致命异常，应用程序即将停止：{message}", ex.Message);
+            _applicationLifetime.StopApplication();
+            throw;
         }
         catch (Exception ex)
         {

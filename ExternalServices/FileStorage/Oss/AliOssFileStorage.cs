@@ -40,7 +40,7 @@ public class AliOssFileStorage : IOssFileStorage
         return objectKey; // 或返回完整URL，若需可拼接 endpoint + bucket + key
     }
     
-    public async Task<string> UploadFileAsync(string filePath, string objectKey)
+    public async Task UploadFileAsync(string filePath, string objectKey)
     {
         if (!File.Exists(filePath))
         {
@@ -55,8 +55,6 @@ public class AliOssFileStorage : IOssFileStorage
             Body = fileStream
         };
         await _client.PutObjectAsync(request);
-
-        return objectKey;
     }
 
     public async Task DeleteAsync(string objectKey)
@@ -76,8 +74,18 @@ public class AliOssFileStorage : IOssFileStorage
             Bucket = _bucketName,
             Key = objectKey
         };
-        await _client.HeadObjectAsync(request);
-        return true;
+
+        try
+        {
+            await _client.HeadObjectAsync(request);
+            return true;
+        }
+        catch (AlibabaCloud.OSS.V2.OperationException ex)
+            when (ex.InnerException is AlibabaCloud.OSS.V2.ServiceException serviceException &&
+                  serviceException.ErrorCode == "NoSuchKey")
+        {
+            return false;
+        }
     }
 
     public async Task<byte[]> DownloadAsync(string objectKey)
@@ -98,5 +106,18 @@ public class AliOssFileStorage : IOssFileStorage
         await body.CopyToAsync(memoryStream);
 
         return memoryStream.ToArray();
+    }
+    
+    public string GeneratePresignedUrlAsync(string objectKey, TimeSpan expiration)
+    {
+        var request = new AlibabaCloud.OSS.V2.Models.GetObjectRequest
+        {
+            Bucket = _bucketName,
+            Key = objectKey
+        };
+
+        var result = _client.Presign(request, DateTime.Now.Add(expiration));
+
+        return result.Url!;
     }
 }
